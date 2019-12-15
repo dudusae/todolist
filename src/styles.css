@@ -19,24 +19,13 @@ h5 {
   color: #555;
   margin: 10px auto;
 }
-.js-form,
-.greetings {
-  display: none;
-}
-input {
-  font-size:1.2rem;
-  font-weight: 300;
-  width:220px;
-  padding: 8px 16px;
-}
-.js-toDolist{
-  text-align:left;
-}
-.showing {
-  display: block;
-}
 
-
+h6 {
+  color: #777;
+  font-size: 0.8rem;
+  margin: 6px 16px;
+  text-align: left;
+}
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -67,3 +56,31 @@ input {
   z-index: -1;
   animation: fadeIn 0.5s linear;
 }
+
+.js-form,
+.greetings {
+  display: none;
+}
+input {
+  font-size: 1.2rem;
+  font-weight: 300;
+  width: 220px;
+  padding: 8px 16px;
+  margin-bottom:20px;
+}
+
+button {
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+
+}
+li {
+  list-style: square;
+  text-align: left;
+  font-size: 0.9rem;
+}
+.showing {
+  display: block;
+}
+
