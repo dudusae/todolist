@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chrome Extension</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="./src/styles.css" />
+    
+  </head>
+
+  <body>
+    <div class="container">
+    <div>
+      <h1 class="js-clock">00:00</h1>
+    </div>
+
+    <form class="js-form">
+      <input type="text" placeholder="이름을 입력해주세요" />
+    </form>
+    <h4 class="greetings"></h4>
+    <h5 class="weather"></h5>
+    <form class="js-toDoForm">
+      <input type="text" placeholder="오늘 할 일을 입력하세요"/>
+    </form>
+    <ul class="js-toDolist"></ul>
+
+    <script src="src/index.js"></script>
+    <script src="src/greetings.js"></script>
+    <script src="src/todo.js"></script>
+    <script src="src/bg.js"></script>
+    <script src="src/location.js"></script>
+  </div>
+  </body>
+</html>
