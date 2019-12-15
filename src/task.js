@@ -9,8 +9,8 @@ const TODO_LS = 'TODO',
   FINISHED_LS = 'FINISHED';
 
 let todos = [],
-  tasks = [],
-  fnTasks = [];
+  pendings = [],
+  finishedes = [];
 
 function getId() {
   const id = Date.now()+Math.ceil(Math.random()*100);
@@ -21,13 +21,17 @@ function saveTasks(key, array) {
   localStorage.setItem(key, JSON.stringify(array));
 }
 
-// function saveTasks() {
-//   localStorage.setItem(PENDING_LS, JSON.stringify(tasks));
-// }
-
-// function saveFnTasks() {
-//   localStorage.setItem(FINISHED_LS, JSON.stringify(fnTasks));
-// }
+function deleteTask(e, ul, key, array) {
+    const btn = e.target;
+    const li = btn.parentNode;
+    const cleanTasks = array.filter(function(task) {
+      return task.id !== parseInt(li.id);
+    });
+    
+    ul.removeChild(li);
+    array = cleanTasks;
+    saveTasks(key, array);
+  }
 
 function paintTodo(text) {
   const newId = getId();
@@ -35,7 +39,7 @@ function paintTodo(text) {
   const delBtn = document.createElement('button');
   const startBtn = document.createElement('button');
   delBtn.innerHTML = '❌';
-  delBtn.addEventListener('click', deleteTodo);
+  delBtn.addEventListener('click', (e)=> deleteTask(e, todoList, TODO_LS, todos));
   startBtn.innerHTML = '🔥';
   startBtn.addEventListener('click', todoToPending);
   const span = document.createElement('span');
@@ -60,7 +64,7 @@ function paintPending(text) {
   const finishBtn = document.createElement('button');
   const span = document.createElement('span');
   pendingDelBtn.innerHTML = '❌';
-  pendingDelBtn.addEventListener('click', deletePending);
+  pendingDelBtn.addEventListener('click',  (e)=> deleteTask(e, pendingList, PENDING_LS, pendings));
   finishBtn.innerHTML = '✅';
   finishBtn.addEventListener('click', moveToFinish);
   span.innerText = text;
@@ -75,8 +79,8 @@ function paintPending(text) {
     timeStamp: Date.now(),
     id: newId,
   };
-  tasks.push(taskObj);
-  saveTasks(PENDING_LS, tasks);
+  pendings.push(taskObj);
+  saveTasks(PENDING_LS, pendings);
 }
 
 function paintFinished(text, startTimeStamp) {
@@ -93,7 +97,7 @@ function paintFinished(text, startTimeStamp) {
     const elapsedTime = `[${hours}시간 ${minutes}분 ${seconds}초]`;
     
   fnDelBtn.innerHTML = '❌';
-  fnDelBtn.addEventListener('click', deleteFinished);
+  fnDelBtn.addEventListener('click',  (e)=> deleteTask(e, finishedList, FINISHED_LS, finishedes));
   fnCancelBtn.innerHTML = '⛔';
   fnCancelBtn.addEventListener('click', finishedToPending);
 
@@ -109,24 +113,23 @@ function paintFinished(text, startTimeStamp) {
     elapsedTime:  elapsedTime,
     id: newId,
   };
-  fnTasks.push(fnObj);
-  saveTasks(FINISHED_LS, fnTasks);
+  finishedes.push(fnObj);
+  saveTasks(FINISHED_LS, finishedes);
 }
 
 function moveToFinish(e) {
   const moveBtn = e.target;
   const moveLi = moveBtn.parentNode;
-  const moveTasks = tasks.filter(function(task) {
+  const moveTasks = pendings.filter(function(task) {
     return task.id === parseInt(moveLi.id);
   });
   const moveText = moveTasks[0].text;
   const startTimeStamp = moveTasks[0].timeStamp;
   paintFinished(moveText, startTimeStamp);
-  deletePending(e);
+  deleteTask(e, pendingList, PENDING_LS, pendings);
 }
 
 function todoToPending(e) {
-    const startTime = Date.now();
     const moveTdBtn = e.target;
     const moveTdLi = moveTdBtn.parentNode;
     const moveTdTasks = todos.filter(function(task) {
@@ -134,18 +137,18 @@ function todoToPending(e) {
     });
     const moveTdText = moveTdTasks[0].text;
     paintPending(moveTdText);
-    deleteTodo(e);
+    deleteTask(e, todoList, TODO_LS, todos);
   }
 
 function finishedToPending(e) {
   const moveFnBtn = e.target;
   const moveFnLi = moveFnBtn.parentNode;
-  const moveFnTasks = fnTasks.filter(function(task) {
+  const movefinishedes = finishedes.filter(function(task) {
     return task.id === parseInt(moveFnLi.id);
   });
-  const moveFnText = moveFnTasks[0].text;
+  const moveFnText = movefinishedes[0].text;
   paintPending(moveFnText);
-  deleteFinished(e);
+  deleteTask(e, finishedList, FINISHED_LS, finishedes);
 }
 
 function handleSubmit(e) {
@@ -153,41 +156,6 @@ function handleSubmit(e) {
   const currentValue = taskInput.value;
   paintTodo(currentValue);
   taskInput.value = '';
-}
-
-function deleteTodo(e) {
-  const btn = e.target;
-  const li = btn.parentNode;
-  todoList.removeChild(li);
-
-  const cleanTodos = todos.filter(function(task) {
-    return task.id !== parseInt(li.id);
-  });
-  todos = cleanTodos;
-  saveTasks(TODO_LS, todos);
-}
-
-function deletePending(e) {
-  const btn = e.target;
-  const li = btn.parentNode;
-  pendingList.removeChild(li);
-
-  const cleanTasks = tasks.filter(function(task) {
-    return task.id !== parseInt(li.id);
-  });
-  tasks = cleanTasks;
-  saveTasks(PENDING_LS, tasks);
-}
-
-function deleteFinished(e) {
-  const fnBtn = e.target;
-  const fnDelLi = fnBtn.parentNode;
-  finishedList.removeChild(fnDelLi);
-  const cleanFnTasks = fnTasks.filter(function(task) {
-    return task.id !== parseInt(fnDelLi.id);
-  });
-  fnTasks = cleanFnTasks;
-  saveTasks(FINISHED_LS, fnTasks);
 }
 
 function loadTasks() {
