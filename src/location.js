@@ -1,4 +1,4 @@
-const APP_ID = '21a3286d73cdf9dd407b720554bdd7ba';
+const APP_ID = '_______';
 const COORDS = 'coords';
 const weather = document.querySelector(".weather");
 
