@@ -8,7 +8,7 @@ function saveLocation(locationObj) {
 
 function getWeather(lat, lon) {
   fetch(
-    `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&APPID=${APP_ID}&units=metric`,
+    `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&APPID=${APP_ID}&units=metric`,
   )
     .then(function(response) {
       return response.json();
