@@ -139,7 +139,7 @@ function parseTime(dateObj, type) {
     return elapsedText;
   } else if (type === 'yymmdd') {
     const year = dateObj.getFullYear();
-    const month = dateObj.getMonth()+1;
+    const month = dateObj.getMonth() + 1;
     const day = dateObj.getDate();
     const endTimeText = `${year}년 ${month}월 ${day}일`;
     return endTimeText;
@@ -175,23 +175,22 @@ function moveToFinished(e) {
 }
 
 function moveToSaved(e) {
+  loadSaved();
   const moveBtn = e.target;
   const moveLi = moveBtn.parentNode;
   const moveTasks = finishedes.filter(function(task) {
     return task.id === parseInt(moveLi.id);
   });
-  const saveObj = 
-  {
-    text : moveTasks[0].text,
-    id : moveTasks[0].id,
-    startTime : moveTasks[0].starTime,
-    endTime : moveTasks[0].endTime,
-    endTime_String : parseTime(new Date(moveTasks[0].endTime), 'yymmdd'),
-    elapsedTime_String : moveTasks[0].elapsedTime_String,
-    elapsedTime_Seconds : moveTasks[0].elapsedTime_Seconds,
-
-  }
-  console.log(saveObj);
+  const saveObj = {
+    text: moveTasks[0].text,
+    id: moveTasks[0].id,
+    startTime: moveTasks[0].starTime,
+    endTime: moveTasks[0].endTime,
+    endTime_String: parseTime(new Date(moveTasks[0].endTime), 'yymmdd'),
+    elapsedTime_String: moveTasks[0].elapsedTime_String,
+    elapsedTime_Seconds: moveTasks[0].elapsedTime_Seconds,
+    project: '',
+  };
   saves.push(saveObj);
   saveTasks(saved);
   deleteTask(e, finished);
@@ -221,7 +220,7 @@ function loadTasks() {
   const loadedTodo = localStorage.getItem(todo.key);
   const loadedPending = localStorage.getItem(pending.key);
   const loadedFinished = localStorage.getItem(finished.key);
-  const loadedSaved = localStorage.getItem(saved.key);
+
   if (loadedTodo !== null) {
     const parsedTodo = JSON.parse(loadedTodo);
     parsedTodo.forEach(function(todo) {
@@ -247,11 +246,15 @@ function loadTasks() {
       );
     });
   }
+}
+
+function loadSaved() {
+  const loadedSaved = localStorage.getItem(saved.key);
   if (loadedSaved !== null) {
     const parsedSaved = JSON.parse(loadedSaved);
 
-    parsedSaved.forEach(function(saved) {
-      saves.push(saved);
+    parsedSaved.forEach(function(save) {
+      saves.push(save);
     });
   }
 }
