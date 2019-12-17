@@ -6,23 +6,23 @@ const options = {
   el: document.getElementById('grid'),
   columns: [
     {
-      header: '시작',
-      name: 'endTime',
-    },
-    {
-        header: '분류',
+      header: '분류',
       name: 'project',
     },
     {
-        header: '업무내용',
+      header: '업무내용',
       name: 'text',
     },
     {
+      header: '날짜',
+      name: 'endTime_String',
+    },
+    {
       header: '소요시간',
-      name: 'elapsedTime',
+      name: 'elapsedTime_String',
     },
   ],
   data: parseSaved,
 };
 
-const grid = new Grid(options); // 그리드 인스턴스 생성
+const grid = new Grid(options); 

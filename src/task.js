@@ -9,25 +9,10 @@ let todos = [],
   finishedes = [],
   saves = [];
 
-const todo = {
-    ul: todoList,
-    key: 'TODO',
-    array: todos,
-  },
-  pending = {
-    ul: pendingList,
-    key: 'PENDING',
-    array: pendings,
-  },
-  finished = {
-    ul: finishedList,
-    key: 'FINISHED',
-    array: finishedes,
-  },
-  saved = {
-    key: 'SAVED',
-    array: saves,
-  };
+const todo = { ul: todoList, key: 'TODO', array: todos },
+  pending = { ul: pendingList, key: 'PENDING', array: pendings },
+  finished = { ul: finishedList, key: 'FINISHED', array: finishedes },
+  saved = { key: 'SAVED', array: saves };
 
 function getId(id) {
   let newId = '';
@@ -107,32 +92,24 @@ function paintPending(text, id, timeStamp) {
   saveTasks(pending);
 }
 
-function parseObjToTime(Obj, type) {
-  const hours = Obj.hours;
-  const minutes = Obj.minutes;
-  const seconds = Obj.seconds;
-
-  if (type === 'text') {
-    const elapsedText = `[${hours}시간 ${minutes}분 ${seconds}초]`;
-    return elapsedText;
-  } else if (type === 'sum') {
-    const elapsedSum = hour * 360 + minutes * 60 + seconds;
-    return elapsedSum;
-  }
-}
-
-function paintFinished(text, id, startTime, endTime, elapsedTimeObj) {
+function paintFinished(
+  text,
+  id,
+  startTime,
+  endTime,
+  elapsedTime_String,
+  elapsedTime_Seconds,
+) {
   const newId = getId(id);
   const fnLi = document.createElement('li');
   const fnDelBtn = document.createElement('button');
   const fnCancelBtn = document.createElement('button');
   const fnSpan = document.createElement('span');
-  const elapsedTimeText = parseObjToTime(elapsedTimeObj, 'text');
   fnDelBtn.innerHTML = '❌';
   fnDelBtn.addEventListener('click', e => deleteTask(e, finished));
-  fnCancelBtn.innerHTML = '⛔';
+  fnCancelBtn.innerHTML = '💾';
   fnCancelBtn.addEventListener('click', moveToSaved);
-  fnSpan.innerText = `${elapsedTimeText} ${text}`;
+  fnSpan.innerText = `[${elapsedTime_String}] ${text}`;
 
   fnLi.appendChild(fnSpan);
   fnLi.appendChild(fnDelBtn);
@@ -145,10 +122,31 @@ function paintFinished(text, id, startTime, endTime, elapsedTimeObj) {
     id: newId,
     startTime,
     endTime,
-    elapsedTimeObj,
+    elapsedTime_String,
+    elapsedTime_Seconds,
   };
   finishedes.push(finishedObj);
   saveTasks(finished);
+}
+
+function parseTime(dateObj, type) {
+  const hours = dateObj.getHours();
+  const minutes = dateObj.getMinutes();
+  const seconds = dateObj.getSeconds();
+
+  if (type === 'hhmmss') {
+    const elapsedText = `${hours}시간 ${minutes}분 ${seconds}초`;
+    return elapsedText;
+  } else if (type === 'yymmdd') {
+    const year = dateObj.getFullYear();
+    const month = dateObj.getMonth()+1;
+    const day = dateObj.getDate();
+    const endTimeText = `${year}년 ${month}월 ${day}일`;
+    return endTimeText;
+  } else if (type === 'seconds') {
+    const elapsedSeconds = hours * 360 + minutes * 60 + seconds;
+    return elapsedSeconds;
+  }
 }
 
 function moveToFinished(e) {
@@ -162,13 +160,17 @@ function moveToFinished(e) {
   const startTime = moveTasks[0].timeStamp;
   const endTime = Date.now();
   const elapsedTime = new Date(endTime - startTime - 32400000);
-  const elapsedTimeObj = {
-    hours: elapsedTime.getHours(),
-    minutes: elapsedTime.getMinutes(),
-    seconds: elapsedTime.getSeconds(),
-  };
+  const elapsedTime_String = parseTime(elapsedTime, 'hhmmss');
+  const elapsedTime_Seconds = parseTime(elapsedTime, 'seconds');
 
-  paintFinished(text, id, startTime, endTime, elapsedTimeObj);
+  paintFinished(
+    text,
+    id,
+    startTime,
+    endTime,
+    elapsedTime_String,
+    elapsedTime_Seconds,
+  );
   deleteTask(e, pending);
 }
 
@@ -178,7 +180,18 @@ function moveToSaved(e) {
   const moveTasks = finishedes.filter(function(task) {
     return task.id === parseInt(moveLi.id);
   });
-  const saveObj = moveTasks[0];
+  const saveObj = 
+  {
+    text : moveTasks[0].text,
+    id : moveTasks[0].id,
+    startTime : moveTasks[0].starTime,
+    endTime : moveTasks[0].endTime,
+    endTime_String : parseTime(new Date(moveTasks[0].endTime), 'yymmdd'),
+    elapsedTime_String : moveTasks[0].elapsedTime_String,
+    elapsedTime_Seconds : moveTasks[0].elapsedTime_Seconds,
+
+  }
+  console.log(saveObj);
   saves.push(saveObj);
   saveTasks(saved);
   deleteTask(e, finished);
@@ -197,18 +210,6 @@ function todoToPending(e) {
   deleteTask(e, todo);
 }
 
-// function finishedToPending(e) {
-//   const moveFnBtn = e.target;
-//   const moveFnLi = moveFnBtn.parentNode;
-//   const movefinishedes = finishedes.filter(function(task) {
-//     return task.id === parseInt(moveFnLi.id);
-//   });
-//   const moveFnText = movefinishedes[0].text;
-//   const moveFnId = movefinishedes[0].id;
-//   paintPending(moveFnText, moveFnId);
-//   deleteTask(e, finished);
-// }
-
 function handleSubmit(e) {
   e.preventDefault();
   const currentValue = taskInput.value;
@@ -220,6 +221,7 @@ function loadTasks() {
   const loadedTodo = localStorage.getItem(todo.key);
   const loadedPending = localStorage.getItem(pending.key);
   const loadedFinished = localStorage.getItem(finished.key);
+  const loadedSaved = localStorage.getItem(saved.key);
   if (loadedTodo !== null) {
     const parsedTodo = JSON.parse(loadedTodo);
     parsedTodo.forEach(function(todo) {
@@ -240,8 +242,16 @@ function loadTasks() {
         finished.id,
         finished.startTime,
         finished.endTime,
-        finished.elapsedTimeObj,
+        finished.elapsedTime_String,
+        finished.elapsedTime_Seconds,
       );
+    });
+  }
+  if (loadedSaved !== null) {
+    const parsedSaved = JSON.parse(loadedSaved);
+
+    parsedSaved.forEach(function(saved) {
+      saves.push(saved);
     });
   }
 }
