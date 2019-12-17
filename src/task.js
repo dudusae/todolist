@@ -6,7 +6,8 @@ const taskForm = document.querySelector('.js-taskForm'),
 
 let todos = [],
   pendings = [],
-  finishedes = [];
+  finishedes = [],
+  saves = [];
 
 const todo = {
     ul: todoList,
@@ -22,6 +23,10 @@ const todo = {
     ul: finishedList,
     key: 'FINISHED',
     array: finishedes,
+  },
+  saved = {
+    key: 'SAVED',
+    array: saves,
   };
 
 function getId(id) {
@@ -95,26 +100,40 @@ function paintPending(text, id, timeStamp) {
 
   const pendingObj = {
     text: text,
-    timeStamp: timeStamp,
     id: newId,
+    timeStamp: timeStamp,
   };
   pendings.push(pendingObj);
   saveTasks(pending);
 }
 
-function paintFinished(text, id, elapsedTime) {
+function parseObjToTime(Obj, type) {
+  const hours = Obj.hours;
+  const minutes = Obj.minutes;
+  const seconds = Obj.seconds;
+
+  if (type === 'text') {
+    const elapsedText = `[${hours}시간 ${minutes}분 ${seconds}초]`;
+    return elapsedText;
+  } else if (type === 'sum') {
+    const elapsedSum = hour * 360 + minutes * 60 + seconds;
+    return elapsedSum;
+  }
+}
+
+function paintFinished(text, id, startTime, endTime, elapsedTimeObj) {
   const newId = getId(id);
   const fnLi = document.createElement('li');
   const fnDelBtn = document.createElement('button');
   const fnCancelBtn = document.createElement('button');
   const fnSpan = document.createElement('span');
-
+  const elapsedTimeText = parseObjToTime(elapsedTimeObj, 'text');
   fnDelBtn.innerHTML = '❌';
   fnDelBtn.addEventListener('click', e => deleteTask(e, finished));
   fnCancelBtn.innerHTML = '⛔';
-  fnCancelBtn.addEventListener('click', finishedToPending);
+  fnCancelBtn.addEventListener('click', moveToSaved);
+  fnSpan.innerText = `${elapsedTimeText} ${text}`;
 
-  fnSpan.innerText = `${elapsedTime} ${text}`;
   fnLi.appendChild(fnSpan);
   fnLi.appendChild(fnDelBtn);
   fnLi.appendChild(fnCancelBtn);
@@ -122,9 +141,11 @@ function paintFinished(text, id, elapsedTime) {
   fnLi.id = newId;
   finishedList.appendChild(fnLi);
   const finishedObj = {
-    text: text,
-    elapsedTime: elapsedTime,
+    text,
     id: newId,
+    startTime,
+    endTime,
+    elapsedTimeObj,
   };
   finishedes.push(finishedObj);
   saveTasks(finished);
@@ -138,15 +159,29 @@ function moveToFinished(e) {
   });
   const text = moveTasks[0].text;
   const id = moveTasks[0].id;
-  const startTimeStamp = moveTasks[0].timeStamp;
-  const endTimeStamp = Date.now();
-  const elapsedTimeObj = new Date(endTimeStamp - startTimeStamp - 32400000);
-  const hours = elapsedTimeObj.getHours();
-  const minutes = elapsedTimeObj.getMinutes();
-  const seconds = elapsedTimeObj.getSeconds();
-  const elapsedTime = `[${hours}시간 ${minutes}분 ${seconds}초]`;
-  paintFinished(text, id, elapsedTime);
+  const startTime = moveTasks[0].timeStamp;
+  const endTime = Date.now();
+  const elapsedTime = new Date(endTime - startTime - 32400000);
+  const elapsedTimeObj = {
+    hours: elapsedTime.getHours(),
+    minutes: elapsedTime.getMinutes(),
+    seconds: elapsedTime.getSeconds(),
+  };
+
+  paintFinished(text, id, startTime, endTime, elapsedTimeObj);
   deleteTask(e, pending);
+}
+
+function moveToSaved(e) {
+  const moveBtn = e.target;
+  const moveLi = moveBtn.parentNode;
+  const moveTasks = finishedes.filter(function(task) {
+    return task.id === parseInt(moveLi.id);
+  });
+  const saveObj = moveTasks[0];
+  saves.push(saveObj);
+  saveTasks(saved);
+  deleteTask(e, finished);
 }
 
 function todoToPending(e) {
@@ -157,22 +192,22 @@ function todoToPending(e) {
   });
   const text = moveTasks[0].text;
   const id = moveTasks[0].id;
-  const timeStamp = Date.now(); 
+  const timeStamp = Date.now();
   paintPending(text, id, timeStamp);
   deleteTask(e, todo);
 }
 
-function finishedToPending(e) {
-  const moveFnBtn = e.target;
-  const moveFnLi = moveFnBtn.parentNode;
-  const movefinishedes = finishedes.filter(function(task) {
-    return task.id === parseInt(moveFnLi.id);
-  });
-  const moveFnText = movefinishedes[0].text;
-  const moveFnId = movefinishedes[0].id;
-  paintPending(moveFnText, moveFnId);
-  deleteTask(e, finished);
-}
+// function finishedToPending(e) {
+//   const moveFnBtn = e.target;
+//   const moveFnLi = moveFnBtn.parentNode;
+//   const movefinishedes = finishedes.filter(function(task) {
+//     return task.id === parseInt(moveFnLi.id);
+//   });
+//   const moveFnText = movefinishedes[0].text;
+//   const moveFnId = movefinishedes[0].id;
+//   paintPending(moveFnText, moveFnId);
+//   deleteTask(e, finished);
+// }
 
 function handleSubmit(e) {
   e.preventDefault();
@@ -200,7 +235,13 @@ function loadTasks() {
   if (loadedFinished !== null) {
     const parsedFinished = JSON.parse(loadedFinished);
     parsedFinished.forEach(function(finished) {
-      paintFinished(finished.text, finished.id, finished.elapsedTime);
+      paintFinished(
+        finished.text,
+        finished.id,
+        finished.startTime,
+        finished.endTime,
+        finished.elapsedTimeObj,
+      );
     });
   }
 }
