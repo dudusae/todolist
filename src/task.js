@@ -194,6 +194,7 @@ function moveToSaved(e) {
   saves.push(saveObj);
   saveTasks(saved);
   deleteTask(e, finished);
+
 }
 
 function todoToPending(e) {
@@ -249,6 +250,7 @@ function loadTasks() {
 }
 
 function loadSaved() {
+  saves.length=0;
   const loadedSaved = localStorage.getItem(saved.key);
   if (loadedSaved !== null) {
     const parsedSaved = JSON.parse(loadedSaved);
